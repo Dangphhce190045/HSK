@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trắc Nghiệm Từ Vựng HSK</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --background-color: #ecf0f1;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--background-color);
+        }
+
+        .header {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        select, button {
+            padding: 10px;
+            border: 2px solid var(--secondary-color);
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .quiz-container {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .question {
+            font-size: 20px;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .options {
+            display: grid;
+            gap: 10px;
+        }
+
+        .option {
+            padding: 15px;
+            border: 2px solid #bdc3c7;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .option:hover {
+            background: #f8f9f9;
+            transform: translateY(-2px);
+        }
+
+        .score-board {
+            text-align: center;
+            font-size: 18px;
+            margin: 20px 0;
+            padding: 15px;
+            background: #fff;
+            border-radius: 8px;
+        }
+
+        button {
+            background: var(--secondary-color);
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        .correct { background: #2ecc71 !important; border-color: #27ae60; }
+        .wrong { background: #e74c3c !important; border-color: #c0392b; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>TRẮC NGHIỆM TỪ VỰNG HSK</h1>
+        <p>Chọn cấp độ và bài học để bắt đầu</p>
+    </div>
+
+    <div class="controls">
+        <select id="hskLevel">
+            <option value="HSK1">HSK 1</option>
+            <option value="HSK2">HSK 2</option>
+            <option value="HSK3">HSK 3</option>
+            <option value="HSK4">HSK 4</option>
+            <option value="HSK5">HSK 5</option>
+            <option value="HSK6">HSK 6</option>
+        </select>
+
+        <select id="lesson">
+            <option value="all">Tất cả bài học</option>
+        </select>
+    </div>
+
+    <button onclick="startQuiz()">Bắt đầu làm bài</button>
+    <div class="score-board" id="scoreBoard"></div>
+    <div id="quizArea"></div>
+
+    <script>
+        const vocabulary = [
+            // Bài 1 + 2
+    { han: '她', pinyin: 'Tā', meaning: 'Cô ấy', level: 'HSK1', lesson: '1+2' },
+    { han: '他', pinyin: 'Tā', meaning: 'Anh ấy', level: 'HSK1', lesson: '1+2' },
+    { han: '汉语', pinyin: 'Hànyǔ', meaning: 'tiếng Trung', level: 'HSK1', lesson: '1+2' },
+    { han: '中文', pinyin: 'Zhōngwén', meaning: 'tiếng Trung (văn viết)', level: 'HSK1', lesson: '1+2' },
+    { han: '谁', pinyin: 'shéi', meaning: 'Ai', level: 'HSK1', lesson: '1+2' },
+    { han: '哪', pinyin: 'nǎ', meaning: 'nào', level: 'HSK1', lesson: '1+2' },
+    { han: '国', pinyin: 'guó', meaning: 'nước, quốc gia', level: 'HSK1', lesson: '1+2' },
+    { han: '呢', pinyin: 'ne', meaning: 'thế còn', level: 'HSK1', lesson: '1+2' },
+    { han: '同学', pinyin: 'tóngxué', meaning: 'bạn học', level: 'HSK1', lesson: '1+2' },
+    { han: '朋友', pinyin: 'péngyǒu', meaning: 'bạn bè', level: 'HSK1', lesson: '1+2' },
+    { han: '的', pinyin: 'de', meaning: 'của', level: 'HSK1', lesson: '1+2' },
+    { han: '同事', pinyin: 'tóngshì', meaning: 'đồng nghiệp', level: 'HSK1', lesson: '1+2' },
+    { han: '他们', pinyin: 'tāmen', meaning: 'các anh ấy, họ (cả nam, nữ)', level: 'HSK1', lesson: '1+2' },
+    { han: '家', pinyin: 'jiā', meaning: 'nhà', level: 'HSK1', lesson: '1+2' },
+    { han: '有', pinyin: 'yǒu', meaning: 'có', level: 'HSK1', lesson: '1+2' },
+    { han: '口', pinyin: 'kǒu', meaning: 'lượng từ chỉ số thành viên trong gia đình', level: 'HSK1', lesson: '1+2' },
+    { han: '个', pinyin: 'gè', meaning: 'lượng từ cho người, đồ vật "cái"', level: 'HSK1', lesson: '1+2' },
+    { han: '几', pinyin: 'jǐ', meaning: 'mấy', level: 'HSK1', lesson: '1+2' },
+    { han: '多大', pinyin: 'duōdà', meaning: 'bao nhiêu', level: 'HSK1', lesson: '1+2' },
+    { han: '岁', pinyin: 'suì', meaning: 'tuổi', level: 'HSK1', lesson: '1+2' },
+    { han: '了', pinyin: 'le', meaning: 'rồi, rồi đấy', level: 'HSK1', lesson: '1+2' },
+    { han: '年', pinyin: 'nián', meaning: 'năm', level: 'HSK1', lesson: '1+2' },
+    { han: '今年', pinyin: 'jīnnián', meaning: 'năm nay', level: 'HSK1', lesson: '1+2' },
+    { han: '明年', pinyin: 'míngnián', meaning: 'năm sau', level: 'HSK1', lesson: '1+2' },
+    { han: '去年', pinyin: 'qùnián', meaning: 'năm ngoái', level: 'HSK1', lesson: '1+2' },
+
+    // Bài 3 + 4
+    { han: '妈妈', pinyin: 'māmā', meaning: 'mẹ', level: 'HSK1', lesson: '3+4' },
+    { han: '爸爸', pinyin: 'bàba', meaning: 'bố', level: 'HSK1', lesson: '3+4' },
+    { han: '女儿', pinyin: 'nǚ\'ér', meaning: 'con gái', level: 'HSK1', lesson: '3+4' },
+    { han: '儿子', pinyin: 'érzi', meaning: 'con trai', level: 'HSK1', lesson: '3+4' },
+    { han: '姐姐', pinyin: 'jiějiě', meaning: 'chị gái', level: 'HSK1', lesson: '3+4' },
+    { han: '妹妹', pinyin: 'mèimei', meaning: 'em gái', level: 'HSK1', lesson: '3+4' },
+    { han: '哥哥', pinyin: 'gēge', meaning: 'anh trai', level: 'HSK1', lesson: '3+4' },
+    { han: '弟弟', pinyin: 'dìdi', meaning: 'em trai', level: 'HSK1', lesson: '3+4' },
+    { han: '菜', pinyin: 'cài', meaning: 'món ăn', level: 'HSK1', lesson: '3+4' },
+    { han: '吃', pinyin: 'chī', meaning: 'ăn', level: 'HSK1', lesson: '3+4' },
+    { han: '很', pinyin: 'hěn', meaning: 'rất', level: 'HSK1', lesson: '3+4' },
+    { han: '会', pinyin: 'huì', meaning: 'biết, sẽ', level: 'HSK1', lesson: '3+4' },
+    { han: '做', pinyin: 'zuò', meaning: 'nấu, làm', level: 'HSK1', lesson: '3+4' },
+    { han: '这', pinyin: 'zhè', meaning: 'đây, này', level: 'HSK1', lesson: '3+4' },
+    { han: '那', pinyin: 'nà', meaning: 'kia, đó, vậy', level: 'HSK1', lesson: '3+4' },
+    { han: '写', pinyin: 'xiě', meaning: 'viết', level: 'HSK1', lesson: '3+4' },
+    { han: '读', pinyin: 'dú', meaning: 'đọc', level: 'HSK1', lesson: '3+4' },
+    { han: '汉字', pinyin: 'hànzì', meaning: 'Hán tự', level: 'HSK1', lesson: '3+4' },
+    { han: '和', pinyin: 'hé', meaning: 'và', level: 'HSK1', lesson: '3+4' },
+    { han: '喝', pinyin: 'hē', meaning: 'uống', level: 'HSK1', lesson: '3+4' },
+    { han: '怎么', pinyin: 'zěnme', meaning: 'như thế nào', level: 'HSK1', lesson: '3+4' },
+
+// Bài 5 + 6
+{ han: '请问', pinyin: 'qǐngwèn', meaning: 'xin hỏi', level: 'HSK1', lesson: '5+6' },
+    { han: '日/号', pinyin: 'rì/hào', meaning: 'ngày (dùng cho lịch)', level: 'HSK1', lesson: '5+6' },
+    { han: '天', pinyin: 'tiān', meaning: 'ngày', level: 'HSK1', lesson: '5+6' },
+    { han: '今天', pinyin: 'jīntiān', meaning: 'hôm nay', level: 'HSK1', lesson: '5+6' },
+    { han: '明天', pinyin: 'míngtiān', meaning: 'ngày mai', level: 'HSK1', lesson: '5+6' },
+    { han: '昨天', pinyin: 'zuótiān', meaning: 'hôm qua', level: 'HSK1', lesson: '5+6' },
+    { han: '月', pinyin: 'yuè', meaning: 'tháng', level: 'HSK1', lesson: '5+6' },
+    { han: '这个月', pinyin: 'zhège yuè', meaning: 'tháng này', level: 'HSK1', lesson: '5+6' },
+    { han: '下个月', pinyin: 'xiàge yuè', meaning: 'tháng sau', level: 'HSK1', lesson: '5+6' },
+    { han: '上个月', pinyin: 'shàngge yuè', meaning: 'tháng trước', level: 'HSK1', lesson: '5+6' },
+    { han: '星期', pinyin: 'xīngqī', meaning: 'tuần, thứ', level: 'HSK1', lesson: '5+6' },
+    { han: '这个星期', pinyin: 'zhège xīngqī', meaning: 'tuần này', level: 'HSK1', lesson: '5+6' },
+    { han: '下个星期', pinyin: 'xiàge xīngqī', meaning: 'tuần sau', level: 'HSK1', lesson: '5+6' },
+    { han: '上个星期', pinyin: 'shàngge xīngqī', meaning: 'tuần trước', level: 'HSK1', lesson: '5+6' },
+    { han: '去', pinyin: 'qù', meaning: 'đi', level: 'HSK1', lesson: '5+6' },
+    { han: '看', pinyin: 'kàn', meaning: 'xem, nhìn', level: 'HSK1', lesson: '5+6' },
+    { han: '书', pinyin: 'shū', meaning: 'sách', level: 'HSK1', lesson: '5+6' },
+    { han: '学校', pinyin: 'xuéxiào', meaning: 'trường học', level: 'HSK1', lesson: '5+6' },
+    { han: '生日', pinyin: 'shēngrì', meaning: 'sinh nhật', level: 'HSK1', lesson: '5+6' },
+    { han: '下 >< 上', pinyin: 'xià >< shàng', meaning: 'ở trên >< ở dưới', level: 'HSK1', lesson: '5+6' },
+    { han: '星期一', pinyin: 'xīngqī yī', meaning: 'thứ 2', level: 'HSK1', lesson: '5+6' },
+    { han: '星期二', pinyin: 'xīngqī èr', meaning: 'thứ 3', level: 'HSK1', lesson: '5+6' },
+    { han: '星期三', pinyin: 'xīngqī sān', meaning: 'thứ 4', level: 'HSK1', lesson: '5+6' },
+    { han: '星期四', pinyin: 'xīngqī sì', meaning: 'thứ 5', level: 'HSK1', lesson: '5+6' },
+    { han: '星期五', pinyin: 'xīngqī wǔ', meaning: 'thứ 6', level: 'HSK1', lesson: '5+6' },
+    { han: '星期六', pinyin: 'xīngqī liù', meaning: 'thứ 7', level: 'HSK1', lesson: '5+6' },
+    { han: '星期日', pinyin: 'xīngqī rì', meaning: 'chủ nhật', level: 'HSK1', lesson: '5+6' },
+    { han: '星期天', pinyin: 'xīngqī tiān', meaning: 'chủ nhật', level: 'HSK1', lesson: '5+6' },
+
+    // Bài 7 + 8
+    { han: '想', pinyin: 'xiǎng', meaning: 'muốn, nhớ', level: 'HSK1', lesson: '7+8' },
+    { han: '喝', pinyin: 'hē', meaning: 'uống', level: 'HSK1', lesson: '7+8' },
+    { han: '吃', pinyin: 'chī', meaning: 'ăn', level: 'HSK1', lesson: '7+8' },
+    { han: '米饭', pinyin: 'mǐfàn', meaning: 'cơm trắng', level: 'HSK1', lesson: '7+8' },
+    { han: '下午', pinyin: 'xiàwǔ', meaning: 'buổi chiều', level: 'HSK1', lesson: '7+8' },
+    { han: '上午', pinyin: 'shàngwǔ', meaning: 'buổi sáng', level: 'HSK1', lesson: '7+8' },
+    { han: '杯子', pinyin: 'bēizǐ', meaning: 'cái ly', level: 'HSK1', lesson: '7+8' },
+    { han: '一杯茶', pinyin: 'Yībēi chá', meaning: '1 ly nước trà', level: 'HSK1', lesson: '7+8' },
+    { han: '一个杯茶', pinyin: 'yīge bēi chá', meaning: '1 tách trà', level: 'HSK1', lesson: '7+8' },
+    { han: '买', pinyin: 'mǎi', meaning: 'mua', level: 'HSK1', lesson: '7+8' },
+    { han: '买家', pinyin: 'mǎijiā', meaning: 'người bán', level: 'HSK1', lesson: '7+8' },
+    { han: '卖', pinyin: 'mài', meaning: 'bán', level: 'HSK1', lesson: '7+8' },
+    { han: '卖家', pinyin: 'màijiā', meaning: 'người mua', level: 'HSK1', lesson: '7+8' },
+    { han: '茶', pinyin: 'chá', meaning: 'trà', level: 'HSK1', lesson: '7+8' },
+    { han: '商店', pinyin: 'shāngdiàn', meaning: 'cửa hàng', level: 'HSK1', lesson: '7+8' },
+    { han: '店', pinyin: 'diàn', meaning: 'tiệm', level: 'HSK1', lesson: '7+8' },
+    { han: '多少', pinyin: 'duōshǎo', meaning: 'bao nhiêu', level: 'HSK1', lesson: '7+8' },
+    { han: '多 >< 少', pinyin: 'duō >< shǎo', meaning: 'nhiều >< ít', level: 'HSK1', lesson: '7+8' },
+    { han: '钱', pinyin: 'qián', meaning: 'tiền', level: 'HSK1', lesson: '7+8' },
+    { han: '快', pinyin: 'kuài', meaning: 'đồng', level: 'HSK1', lesson: '7+8' },
+    { han: '这 >< 那', pinyin: 'zhè >< nà', meaning: 'này >< kia', level: 'HSK1', lesson: '7+8' },
+    { han: '了', pinyin: 'le', meaning: 'rồi', level: 'HSK1', lesson: '7+8' },
+    
+    // HSK1 - Bài 9 + 10
+    { han: '大', pinyin: 'dà', meaning: 'lớn', level: 'HSK1', lesson: '9+10' },
+    { han: '小', pinyin: 'xiǎo', meaning: 'nhỏ', level: 'HSK1', lesson: '9+10' },
+    { han: '猫', pinyin: 'māo', meaning: 'mèo', level: 'HSK1', lesson: '9+10' },
+    { han: '狗', pinyin: 'gǒu', meaning: 'chó', level: 'HSK1', lesson: '9+10' },
+    { han: '只', pinyin: 'zhǐ', meaning: 'dùng cho con chó nhỏ', level: 'HSK1', lesson: '9+10' },
+    { han: '椅子', pinyin: 'yǐzi', meaning: 'cái ghế', level: 'HSK1', lesson: '9+10' },
+    { han: '桌子', pinyin: 'zhuōzi', meaning: 'cái bàn', level: 'HSK1', lesson: '9+10' },
+    { han: '上面', pinyin: 'shàngmiàn', meaning: 'phía trên', level: 'HSK1', lesson: '9+10' },
+    { han: '下面', pinyin: 'xiàmiàn', meaning: 'phía dưới', level: 'HSK1', lesson: '9+10' },
+    { han: '在', pinyin: 'zài', meaning: 'ở, đang', level: 'HSK1', lesson: '9+10' },
+    { han: '这儿', pinyin: 'zhè\'er', meaning: 'ở đây', level: 'HSK1', lesson: '9+10' },
+    { han: '那儿', pinyin: 'nà\'er', meaning: 'ở kia', level: 'HSK1', lesson: '9+10' },
+    { han: '哪儿', pinyin: 'nǎ\'er', meaning: 'ở đâu', level: 'HSK1', lesson: '9+10' },
+    { han: '工作', pinyin: 'gōngzuò', meaning: 'công việc, làm việc', level: 'HSK1', lesson: '9+10' },
+    { han: '儿子', pinyin: 'érzǐ', meaning: 'con trai', level: 'HSK1', lesson: '9+10' },
+    { han: '女儿', pinyin: 'nǚ\'ér', meaning: 'con gái', level: 'HSK1', lesson: '9+10' },
+    { han: '爸爸', pinyin: 'bàba', meaning: 'ba', level: 'HSK1', lesson: '9+10' },
+    { han: '妈妈', pinyin: 'māma', meaning: 'mẹ', level: 'HSK1', lesson: '9+10' },
+    { han: '医院', pinyin: 'yīyuàn', meaning: 'bệnh viện', level: 'HSK1', lesson: '9+10' },
+    { han: '医生', pinyin: 'yīshēng', meaning: 'bác sĩ', level: 'HSK1', lesson: '9+10' },
+
+    // HSK1 - Bài 10 + 11
+    { han: '几', pinyin: 'jǐ', meaning: 'mấy', level: 'HSK1', lesson: '10+11' },
+    { han: '现在', pinyin: 'xiànzài', meaning: 'bây giờ', level: 'HSK1', lesson: '10+11' },
+    { han: '上午', pinyin: 'shàngwǔ', meaning: 'buổi sáng', level: 'HSK1', lesson: '10+11' },
+    { han: '中午', pinyin: 'zhōngwǔ', meaning: 'buổi trưa', level: 'HSK1', lesson: '10+11' },
+    { han: '下午', pinyin: 'xiàwǔ', meaning: 'buổi chiều', level: 'HSK1', lesson: '10+11' },
+    { han: '晚上', pinyin: 'wǎnshàng', meaning: 'buổi tối', level: 'HSK1', lesson: '10+11' },
+    { han: '点', pinyin: 'diǎn', meaning: 'giờ', level: 'HSK1', lesson: '10+11' },
+    { han: '分', pinyin: 'fēn', meaning: 'phút (thời gian trên đồng hồ)', level: 'HSK1', lesson: '10+11' },
+    { han: '差', pinyin: 'chà', meaning: 'kém', level: 'HSK1', lesson: '10+11' },
+    { han: '半', pinyin: 'bàn', meaning: 'rưỡi', level: 'HSK1', lesson: '10+11' },
+    { han: '一刻', pinyin: 'yīkè', meaning: '15 phút', level: 'HSK1', lesson: '10+11' },
+    { han: '早饭', pinyin: 'zǎofàn', meaning: 'bữa sáng', level: 'HSK1', lesson: '10+11' },
+    { han: '午饭', pinyin: 'wǔfàn', meaning: 'bữa trưa', level: 'HSK1', lesson: '10+11' },
+    { han: '晚饭', pinyin: 'wǎnfàn', meaning: 'bữa tối', level: 'HSK1', lesson: '10+11' },
+    { han: '前面', pinyin: 'qiánmiàn', meaning: 'phía trước', level: 'HSK1', lesson: '10+11' },
+    { han: '后面', pinyin: 'hòumiàn', meaning: 'phía sau', level: 'HSK1', lesson: '10+11' },
+    { han: '里', pinyin: 'lǐ', meaning: 'bên trong', level: 'HSK1', lesson: '10+11' },
+    { han: '左边', pinyin: 'zuòbiān', meaning: 'bên trái', level: 'HSK1', lesson: '10+11' },
+    { han: '右边', pinyin: 'yòubiān', meaning: 'bên phải', level: 'HSK1', lesson: '10+11' },
+    { han: '电脑', pinyin: 'diànnǎo', meaning: 'máy tính', level: 'HSK1', lesson: '10+11' },
+    { han: '时候', pinyin: 'shíhòu', meaning: 'khi', level: 'HSK1', lesson: '10+11' },
+    { han: '电影', pinyin: 'diànyǐng', meaning: 'phim rạp, phim lẻ', level: 'HSK1', lesson: '10+11' },
+    { han: '能', pinyin: 'néng', meaning: 'có thể', level: 'HSK1', lesson: '10+11' },
+    { han: '坐', pinyin: 'zuò', meaning: 'ngồi', level: 'HSK1', lesson: '10+11' },
+    { han: '回', pinyin: 'huí', meaning: 'về, quay về (lại)', level: 'HSK1', lesson: '10+11' },
+    { han: '有', pinyin: 'yǒu', meaning: 'có', level: 'HSK1', lesson: '10+11' },
+    { han: '没有', pinyin: 'méiyǒu', meaning: 'không có', level: 'HSK1', lesson: '10+11' },
+    { han: '和', pinyin: 'hé', meaning: 'và', level: 'HSK1', lesson: '10+11' },
+    { han: '本', pinyin: 'běn', meaning: 'lượng từ của sách', level: 'HSK1', lesson: '10+11' },
+
+    // HSK1 - Bài 12 + 13
+    { han: '住', pinyin: 'zhù', meaning: 'ở, sống (ở đó vài ngày)', level: 'HSK1', lesson: '12+13' },
+    { han: '前', pinyin: 'qián', meaning: 'trước', level: 'HSK1', lesson: '12+13' },
+    { han: '后', pinyin: 'hòu', meaning: 'sau', level: 'HSK1', lesson: '12+13' },
+    { han: '天气', pinyin: 'tiānqì', meaning: 'thời tiết', level: 'HSK1', lesson: '12+13' },
+    { han: '太…了', pinyin: 'tài…le', meaning: '…quá', level: 'HSK1', lesson: '12+13' },
+    { han: '热', pinyin: 'rè', meaning: 'nóng', level: 'HSK1', lesson: '12+13' },
+    { han: '冷', pinyin: 'lěng', meaning: 'lạnh', level: 'HSK1', lesson: '12+13' },
+    { han: '雨', pinyin: 'yǔ', meaning: 'mưa', level: 'HSK1', lesson: '12+13' },
+    { han: '来', pinyin: 'lái', meaning: 'đến', level: 'HSK1', lesson: '12+13' },
+    { han: '会', pinyin: 'huì', meaning: 'biết, sẽ', level: 'HSK1', lesson: '12+13' },
+    { han: '水', pinyin: 'shuǐ', meaning: 'nước', level: 'HSK1', lesson: '12+13' },
+    { han: '水果', pinyin: 'shuǐguǒ', meaning: 'trái cây', level: 'HSK1', lesson: '12+13' },
+    { han: '爱', pinyin: 'ài', meaning: 'yêu', level: 'HSK1', lesson: '12+13' },
+    { han: '喜欢', pinyin: 'xǐhuān', meaning: 'thích', level: 'HSK1', lesson: '12+13' },
+    { han: '身体', pinyin: 'shēntǐ', meaning: 'sức khỏe', level: 'HSK1', lesson: '12+13' },
+    { han: '喂', pinyin: 'wèi', meaning: 'a lô', level: 'HSK1', lesson: '12+13' },
+    { han: '也', pinyin: 'yě', meaning: 'cũng', level: 'HSK1', lesson: '12+13' },
+    { han: '学习', pinyin: 'xuéxí', meaning: 'học', level: 'HSK1', lesson: '12+13' },
+    { han: '电视', pinyin: 'diànshì', meaning: 'tivi', level: 'HSK1', lesson: '12+13' },
+    { han: '睡觉', pinyin: 'shuìjiào', meaning: 'ngủ', level: 'HSK1', lesson: '12+13' },
+    { han: '些', pinyin: 'xiē', meaning: 'những, vài', level: 'HSK1', lesson: '12+13' },
+    { han: '打电话', pinyin: 'dǎ diànhuà', meaning: 'gọi điện thoại', level: 'HSK1', lesson: '12+13' },
+    { han: '吧', pinyin: 'ba', meaning: '(trợ từ ngữ khí) nha, nhé...', level: 'HSK1', lesson: '12+13' },
+    { han: '给', pinyin: 'gěi', meaning: 'cho, đưa', level: 'HSK1', lesson: '12+13' },
+    { han: '这些', pinyin: 'zhèxiē', meaning: 'những cái này', level: 'HSK1', lesson: '12+13' },
+    { han: '那些', pinyin: 'nàxiē', meaning: 'những cái kia', level: 'HSK1', lesson: '12+13' },
+
+    // HSK1 - Bài 14 + 15
+    { han: '东西', pinyin: 'dōngxī', meaning: 'đồ vật', level: 'HSK1', lesson: '14+15' },
+    { han: '一点儿', pinyin: 'yīdiǎnr', meaning: '1 chút ít', level: 'HSK1', lesson: '14+15' },
+    { han: '苹果', pinyin: 'píngguǒ', meaning: 'trái táo', level: 'HSK1', lesson: '14+15' },
+    { han: '看见', pinyin: 'kànjiàn', meaning: 'nhìn thấy', level: 'HSK1', lesson: '14+15' },
+    { han: '先生', pinyin: 'xiānshēng', meaning: 'ngài, ông', level: 'HSK1', lesson: '14+15' },
+    { han: '开车', pinyin: 'kāichē', meaning: 'lái xe', level: 'HSK1', lesson: '14+15' },
+    { han: '回来', pinyin: 'huílái', meaning: 'trở lại', level: 'HSK1', lesson: '14+15' },
+    { han: '衣服', pinyin: 'yīfú', meaning: 'quần áo', level: 'HSK1', lesson: '14+15' },
+    { han: '漂亮', pinyin: 'piàoliang', meaning: 'đẹp', level: 'HSK1', lesson: '14+15' },
+    { han: '都', pinyin: 'dōu', meaning: 'đều', level: 'HSK1', lesson: '14+15' },
+    { han: '认识', pinyin: 'rènshí', meaning: 'quen biết', level: 'HSK1', lesson: '14+15' },
+    { han: '大学', pinyin: 'dàxué', meaning: 'đại học', level: 'HSK1', lesson: '14+15' },
+    { han: '饭店', pinyin: 'fàndiàn', meaning: 'tiệm cơm, nhà hàng', level: 'HSK1', lesson: '14+15' },
+    { han: '出租车', pinyin: 'chūzū chē', meaning: 'taxi', level: 'HSK1', lesson: '14+15' },
+    { han: '一起', pinyin: 'yīqǐ', meaning: 'cùng nhau', level: 'HSK1', lesson: '14+15' },
+    { han: '高兴', pinyin: 'gāoxìng', meaning: 'vui', level: 'HSK1', lesson: '14+15' },
+    { han: '听', pinyin: 'tīng', meaning: 'nghe', level: 'HSK1', lesson: '14+15' },
+    { han: '飞机', pinyin: 'fēijī', meaning: 'máy bay', level: 'HSK1', lesson: '14+15' },
+    { han: '在', pinyin: 'zài', meaning: 'trong, ở', level: 'HSK1', lesson: '14+15' },
+    { han: '住', pinyin: 'zhù', meaning: 'sống, ở', level: 'HSK1', lesson: '14+15' },
+    // Bài 1 + 2 (HSK2)
+    { han: '要', pinyin: 'yào', meaning: 'muốn', level: 'HSK2', lesson: '1+2' },
+    { han: '旅游', pinyin: 'lǚyóu', meaning: 'du lịch', level: 'HSK2', lesson: '1+2' },
+    { han: '觉得', pinyin: 'juédé', meaning: 'cảm thấy, nghĩ rằng', level: 'HSK2', lesson: '1+2' },
+    { han: '最', pinyin: 'zuì', meaning: 'nhất', level: 'HSK2', lesson: '1+2' },
+    { han: '为什么', pinyin: 'wèishéme', meaning: 'tại sao', level: 'HSK2', lesson: '1+2' },
+    { han: '运动', pinyin: 'yùndòng', meaning: 'vận động, thể thao', level: 'HSK2', lesson: '1+2' },
+    { han: '新', pinyin: 'xīn', meaning: 'mới', level: 'HSK2', lesson: '1+2' },
+    { han: '眼睛', pinyin: 'yǎnjīng', meaning: 'đôi mắt', level: 'HSK2', lesson: '1+2' },
+    { han: '花', pinyin: 'huā', meaning: 'hoa', level: 'HSK2', lesson: '1+2' },
+    { han: '生病', pinyin: 'shēngbìng', meaning: 'bị bệnh', level: 'HSK2', lesson: '1+2' },
+    { han: '出', pinyin: 'chū', meaning: 'xuất', level: 'HSK2', lesson: '1+2' },
+    { han: '出去', pinyin: 'chūqù', meaning: 'đi ra ngoài', level: 'HSK2', lesson: '1+2' },
+    { han: '出院', pinyin: 'chūyuàn', meaning: 'xuất viện', level: 'HSK2', lesson: '1+2' },
+    { han: '每', pinyin: 'měi', meaning: 'mỗi', level: 'HSK2', lesson: '1+2' },
+    { han: '每天', pinyin: 'měi tiān', meaning: 'mỗi ngày', level: 'HSK2', lesson: '1+2' },
+    { han: '每个人', pinyin: 'měi ge rén', meaning: 'mỗi người', level: 'HSK2', lesson: '1+2' },
+    { han: '踢足球', pinyin: 'tī zúqiú', meaning: 'đá banh', level: 'HSK2', lesson: '1+2' },
+    { han: '跑步', pinyin: 'pǎobù', meaning: 'chạy bộ', level: 'HSK2', lesson: '1+2' },
+    { han: '起床', pinyin: 'qǐchuáng', meaning: 'thức dậy', level: 'HSK2', lesson: '1+2' },
+    { han: '起来', pinyin: 'qǐlái', meaning: 'ngồi dậy', level: 'HSK2', lesson: '1+2' },
+    { han: '药', pinyin: 'yào', meaning: 'thuốc', level: 'HSK2', lesson: '1+2' },
+    { han: '吃药', pinyin: 'chī yào', meaning: 'uống thuốc', level: 'HSK2', lesson: '1+2' },
+    { han: '这么', pinyin: 'zhème', meaning: 'như vậy', level: 'HSK2', lesson: '1+2' },
+
+    // Bài 3 + 4 (HSK2)
+    { han: '高', pinyin: 'gāo', meaning: 'cao', level: 'HSK2', lesson: '3+4' },
+    { han: '米', pinyin: 'mǐ', meaning: 'mét', level: 'HSK2', lesson: '3+4' },
+    { han: '知道', pinyin: 'zhīdào', meaning: 'biết (thông tin, nghe là biết)', level: 'HSK2', lesson: '3+4' },
+    { han: '休息', pinyin: 'xiūxi', meaning: 'nghỉ ngơi', level: 'HSK2', lesson: '3+4' },
+    { han: '忙', pinyin: 'máng', meaning: 'bận', level: 'HSK2', lesson: '3+4' },
+    { han: '时间', pinyin: 'shíjiān', meaning: 'thời gian', level: 'HSK2', lesson: '3+4' },
+    { han: '累', pinyin: 'lèi', meaning: 'mệt', level: 'HSK2', lesson: '3+4' },
+    { han: '千', pinyin: 'qiān', meaning: 'nghìn', level: 'HSK2', lesson: '3+4' },
+    { han: '手表', pinyin: 'shǒubiǎo', meaning: 'đồng hồ (đeo tay)', level: 'HSK2', lesson: '3+4' },
+    { han: '报纸', pinyin: 'bàozhǐ', meaning: 'báo (báo giấy)', level: 'HSK2', lesson: '3+4' },
+    { han: '送', pinyin: 'sòng', meaning: 'giao, tặng', level: 'HSK2', lesson: '3+4' },
+    { han: '一下', pinyin: 'yīxià', meaning: '1 lát, 1 chút (thời gian)', level: 'HSK2', lesson: '3+4' },
+    { han: '牛奶', pinyin: 'niúnǎi', meaning: 'sữa bò', level: 'HSK2', lesson: '3+4' },
+    { han: '房间', pinyin: 'fángjiān', meaning: 'phòng', level: 'HSK2', lesson: '3+4' },
+    { han: '丈夫', pinyin: 'zhàngfū', meaning: 'người chồng', level: 'HSK2', lesson: '3+4' },
+    { han: '旁边', pinyin: 'pángbiān', meaning: 'kế bên', level: 'HSK2', lesson: '3+4' },
+    { han: '真', pinyin: 'zhēn', meaning: 'thật, quả là', level: 'HSK2', lesson: '3+4' },
+    { han: '真的', pinyin: 'zhēn de', meaning: 'sự thật', level: 'HSK2', lesson: '3+4' },
+    { han: '颜色', pinyin: 'yánsè', meaning: 'màu sắc', level: 'HSK2', lesson: '3+4' },
+    { han: '粉色', pinyin: 'fěnsè', meaning: 'màu hồng', level: 'HSK2', lesson: '3+4' },
+    { han: '红色', pinyin: 'hóngsè', meaning: 'màu đỏ', level: 'HSK2', lesson: '3+4' },
+    { han: '快乐', pinyin: 'kuàile', meaning: 'vui vẻ', level: 'HSK2', lesson: '3+4' },
+    { han: '接', pinyin: 'jiē', meaning: 'đón, nhận', level: 'HSK2', lesson: '3+4' },
+    { han: '接电话', pinyin: 'jiē diànhuà', meaning: 'gọi điện thoại', level: 'HSK2', lesson: '3+4' },
+    { han: '非常', pinyin: 'fēicháng', meaning: 'vô cùng', level: 'HSK2', lesson: '3+4' },
+    { han: '开始', pinyin: 'kāishǐ', meaning: 'bắt đầu', level: 'HSK2', lesson: '3+4' },
+    { han: '已经', pinyin: 'yǐjīng', meaning: 'đã', level: 'HSK2', lesson: '3+4' },
+    { han: '长', pinyin: 'cháng', meaning: 'dài / lâu', level: 'HSK2', lesson: '3+4' },
+    { han: '多长时间', pinyin: 'duō cháng shíjiān', meaning: 'bao lâu', level: 'HSK2', lesson: '3+4' },
+    { han: '帮', pinyin: 'bāng', meaning: 'giúp đỡ', level: 'HSK2', lesson: '3+4' },
+    { han: '介绍', pinyin: 'jièshào', meaning: 'giới thiệu', level: 'HSK2', lesson: '3+4' },
+
+    // Bài 5 (HSK2)
+    { han: '外面', pinyin: 'wàimiàn', meaning: 'bên ngoài', level: 'HSK2', lesson: '5' },
+    { han: '里面', pinyin: 'lǐmiàn', meaning: 'bên trong', level: 'HSK2', lesson: '5' },
+    { han: '准备', pinyin: 'zhǔnbèi', meaning: 'chuẩn bị', level: 'HSK2', lesson: '5' },
+    { han: '鱼', pinyin: 'yú', meaning: 'cá', level: 'HSK2', lesson: '5' },
+    { han: '一条鱼', pinyin: 'yītiáo yú', meaning: '1 con cá', level: 'HSK2', lesson: '5' },
+    { han: '件', pinyin: 'jiàn', meaning: 'chiếc (lượng từ của áo)', level: 'HSK2', lesson: '5' },
+    { han: '考试', pinyin: 'kǎoshì', meaning: 'kiểm tra', level: 'HSK2', lesson: '5' },
+    { han: '意思', pinyin: 'yìsi', meaning: 'ý nghĩa', level: 'HSK2', lesson: '5' },
+    { han: '有意思', pinyin: 'yǒuyìsi', meaning: 'thú vị', level: 'HSK2', lesson: '5' },
+    { han: '以后', pinyin: 'yǐhòu', meaning: 'sau, sau này', level: 'HSK2', lesson: '5' },
+    { han: '以前', pinyin: 'yǐqián', meaning: 'trước, trước đây', level: 'HSK2', lesson: '5' },
+    { han: '对', pinyin: 'duì', meaning: 'đúng', level: 'HSK2', lesson: '5' },
+    { han: '错', pinyin: 'cuò', meaning: 'sai', level: 'HSK2', lesson: '5' },
+    { han: '不错', pinyin: 'bùcuò', meaning: 'khá tốt', level: 'HSK2', lesson: '5' },
+    { han: '还', pinyin: 'hái', meaning: 'vẫn', level: 'HSK2', lesson: '5' },
+    { han: '可以', pinyin: 'kěyǐ', meaning: 'có thể, tạm được', level: 'HSK2', lesson: '5' },
+    { han: '有点儿', pinyin: 'yǒudiǎnr', meaning: 'hơi, có chút', level: 'HSK2', lesson: '5' },
+    { han: '咖啡', pinyin: 'kāfēi', meaning: 'cà phê', level: 'HSK2', lesson: '5' },
+
+    // Bài 6 + 7 (HSK2)
+    { han: '门', pinyin: 'mén', meaning: 'cửa', level: 'HSK2', lesson: '6+7' },
+    { han: '外', pinyin: 'wài', meaning: 'ngoài', level: 'HSK2', lesson: '6+7' },
+    { han: '自行车', pinyin: 'zìxíngchē', meaning: 'xe đạp', level: 'HSK2', lesson: '6+7' },
+    { han: '骑', pinyin: 'qí', meaning: 'cưỡi, chạy (xe đạp, xe máy)', level: 'HSK2', lesson: '6+7' },
+    { han: '羊肉', pinyin: 'yángròu', meaning: 'thịt dê', level: 'HSK2', lesson: '6+7' },
+    { han: '牛肉', pinyin: 'niúròu', meaning: 'thịt bò', level: 'HSK2', lesson: '6+7' },
+    { han: '面条', pinyin: 'miàntiáo', meaning: 'mì sợi', level: 'HSK2', lesson: '6+7' },
+    { han: '经常', pinyin: 'jīngcháng', meaning: 'thường xuyên', level: 'HSK2', lesson: '6+7' },
+    { han: '一公斤', pinyin: 'yī gōngjīn', meaning: '1kg', level: 'HSK2', lesson: '6+7' },
+    { han: '一斤', pinyin: 'yī jīn', meaning: '0,5kg', level: 'HSK2', lesson: '6+7' },
+    { han: '因为…所以', pinyin: 'yīnwèi…suǒyǐ', meaning: 'bởi vì…cho nên', level: 'HSK2', lesson: '6+7' },
+    { han: '游泳', pinyin: 'yóuyǒng', meaning: 'bơi lội', level: 'HSK2', lesson: '6+7' },
+    { han: '打', pinyin: 'dǎ', meaning: 'đánh', level: 'HSK2', lesson: '6+7' },
+    { han: '打篮球', pinyin: 'dǎ lánqiú', meaning: 'chơi bóng rổ', level: 'HSK2', lesson: '6+7' },
+    { han: '姐姐', pinyin: 'jiějiě', meaning: 'chị gái', level: 'HSK2', lesson: '6+7' },
+    { han: '教室', pinyin: 'jiàoshì', meaning: 'phòng học', level: 'HSK2', lesson: '6+7' },
+    { han: '机场', pinyin: 'jīchǎng', meaning: 'sân bay', level: 'HSK2', lesson: '6+7' },
+    { han: '离', pinyin: 'lí', meaning: 'cách (khoảng cách)', level: 'HSK2', lesson: '6+7' },
+    { han: '远 >< 近', pinyin: 'yuǎn >< jìn', meaning: 'xa >< gần', level: 'HSK2', lesson: '6+7' },
+    { han: '慢 >< 快', pinyin: 'màn >< kuài', meaning: 'chậm >< nhanh', level: 'HSK2', lesson: '6+7' },
+    { han: '公司', pinyin: 'gōngsī', meaning: 'công ty', level: 'HSK2', lesson: '6+7' },
+    { han: '公共汽车', pinyin: 'gōnggòng qìchē', meaning: 'xe buýt', level: 'HSK2', lesson: '6+7' },
+    { han: '小时', pinyin: 'xiǎoshí', meaning: 'tiếng đồng hồ', level: 'HSK2', lesson: '6+7' },
+    { han: '卫生间 = 洗手间', pinyin: 'wèishēngjiān = xǐshǒujiān', meaning: 'nhà vệ sinh', level: 'HSK2', lesson: '6+7' },
+
+    // Bài 8 (HSK2)
+    { han: '走', pinyin: 'zǒu', meaning: 'đi bộ', level: 'HSK2', lesson: '8' },
+    { han: '到', pinyin: 'dào', meaning: 'đến', level: 'HSK2', lesson: '8' },
+    { han: '过', pinyin: 'guò', meaning: 'trải qua, ăn mừng', level: 'HSK2', lesson: '8' },
+    { han: '让', pinyin: 'ràng', meaning: 'để, bảo', level: 'HSK2', lesson: '8' },
+    { han: '告诉', pinyin: 'gàosù', meaning: 'nói với', level: 'HSK2', lesson: '8' },
+    { han: '再', pinyin: 'zài', meaning: 'lại', level: 'HSK2', lesson: '8' },
+    { han: '等', pinyin: 'děng', meaning: 'đợi', level: 'HSK2', lesson: '8' },
+    { han: '找', pinyin: 'zhǎo', meaning: 'tìm', level: 'HSK2', lesson: '8' },
+    { han: '事情', pinyin: 'shìqíng', meaning: 'việc, sự việc', level: 'HSK2', lesson: '8' },
+    { han: '服务员', pinyin: 'fúwùyuán', meaning: 'nhân viên phục vụ', level: 'HSK2', lesson: '8' },
+    { han: '白', pinyin: 'bái', meaning: 'trắng', level: 'HSK2', lesson: '8' },
+    { han: '黑', pinyin: 'hēi', meaning: 'đen', level: 'HSK2', lesson: '8' },
+    { han: '贵', pinyin: 'guì', meaning: 'mắc, đắt', level: 'HSK2', lesson: '8' },
+
+    // Bài 9 + 10 (HSK2)
+    { han: '从…到', pinyin: 'cóng…dào', meaning: 'từ…đến', level: 'HSK2', lesson: '9+10' },
+    { han: '第一', pinyin: 'dì yī', meaning: 'thứ nhất', level: 'HSK2', lesson: '9+10' },
+    { han: '希望', pinyin: 'xīwàng', meaning: 'hy vọng', level: 'HSK2', lesson: '9+10' },
+    { han: '问题', pinyin: 'wèntí', meaning: 'thắc mắc, vấn đề', level: 'HSK2', lesson: '9+10' },
+    { han: '欢迎', pinyin: 'huānyíng', meaning: 'hoan nghênh', level: 'HSK2', lesson: '9+10' },
+    { han: '跳舞', pinyin: 'tiàowǔ', meaning: 'múa, khiêu vũ', level: 'HSK2', lesson: '9+10' },
+    { han: '上班', pinyin: 'shàngbān', meaning: 'đi làm', level: 'HSK2', lesson: '9+10' },
+    { han: '下班', pinyin: 'xiàbān', meaning: 'tan làm', level: 'HSK2', lesson: '9+10' },
+    { han: '玩', pinyin: 'wán', meaning: 'xong', level: 'HSK2', lesson: '9+10' },
+    { han: '题', pinyin: 'tí', meaning: 'câu hỏi', level: 'HSK2', lesson: '9+10' },
+    { han: '懂', pinyin: 'dǒng', meaning: 'hiểu', level: 'HSK2', lesson: '9+10' },
+    { han: '课', pinyin: 'kè', meaning: 'lớp học, bài học, tiết học', level: 'HSK2', lesson: '9+10' },
+    { han: '帮助', pinyin: 'bāngzhù', meaning: 'giúp đỡ, có ích', level: 'HSK2', lesson: '9+10' },
+    { han: '别', pinyin: 'bié', meaning: 'đừng', level: 'HSK2', lesson: '9+10' },
+    { han: '鸡蛋', pinyin: 'jīdàn', meaning: 'trứng gà', level: 'HSK2', lesson: '9+10' },
+    { han: '西瓜', pinyin: 'xīguā', meaning: 'dưa hấu', level: 'HSK2', lesson: '9+10' },
+    { han: '正在', pinyin: 'zhèngzài', meaning: 'đang', level: 'HSK2', lesson: '9+10' },
+    { han: '手机', pinyin: 'shǒujī', meaning: 'điện thoại (di động)', level: 'HSK2', lesson: '9+10' },
+    { han: '洗', pinyin: 'xǐ', meaning: 'rửa, gội, giặt', level: 'HSK2', lesson: '9+10' },
+    { han: '洗衣机', pinyin: 'xǐyījī', meaning: 'máy giặt', level: 'HSK2', lesson: '9+10' },
+
+    // Bài 11 + 12 (HSK2)
+    { han: '唱歌', pinyin: 'chànggē', meaning: 'hát', level: 'HSK2', lesson: '11+12' },
+    { han: '男/女', pinyin: 'nán/nǚ', meaning: 'nam/nữ', level: 'HSK2', lesson: '11+12' },
+    { han: '孩子', pinyin: 'háizǐ', meaning: 'con cái', level: 'HSK2', lesson: '11+12' },
+    { han: '便宜 >< 贵', pinyin: 'piányí >< guì', meaning: 'rẻ >< đắt', level: 'HSK2', lesson: '11+12' },
+    { han: '说话', pinyin: 'shuōhuà', meaning: 'nói chung', level: 'HSK2', lesson: '11+12' },
+    { han: '去年', pinyin: 'qùnián', meaning: 'năm ngoái', level: 'HSK2', lesson: '11+12' },
+    { han: '姓', pinyin: 'xìng', meaning: 'họ (tên)', level: 'HSK2', lesson: '11+12' },
+    { han: '可能', pinyin: 'kěnéng', meaning: 'có lẽ', level: 'HSK2', lesson: '11+12' },
+    { han: '妻子', pinyin: 'qīzǐ', meaning: 'người vợ', level: 'HSK2', lesson: '11+12' },
+    { han: '零', pinyin: 'líng', meaning: '0', level: 'HSK2', lesson: '11+12' },
+    { han: '雪', pinyin: 'xuě', meaning: 'tuyết', level: 'HSK2', lesson: '11+12' },
+    { han: '度', pinyin: 'dù', meaning: 'độ (nhiệt độ)', level: 'HSK2', lesson: '11+12' },
+    { han: '穿', pinyin: 'chuān', meaning: 'mặc, mang', level: 'HSK2', lesson: '11+12' },
+    { han: '进', pinyin: 'jìn', meaning: 'vào', level: 'HSK2', lesson: '11+12' },
+    { han: '近', pinyin: 'jìn', meaning: 'gần', level: 'HSK2', lesson: '11+12' },
+    { han: '弟弟', pinyin: 'dìdì', meaning: 'em trai', level: 'HSK2', lesson: '11+12' },
+
+    // Bài 13 + 14 (HSK2)
+    { han: '手', pinyin: 'shǒu', meaning: 'tay', level: 'HSK2', lesson: '13+14' },
+    { han: '拿', pinyin: 'ná', meaning: 'cầm', level: 'HSK2', lesson: '13+14' },
+    { han: '铅笔', pinyin: 'qiānbǐ', meaning: 'bút chì', level: 'HSK2', lesson: '13+14' },
+    { han: '班', pinyin: 'bān', meaning: 'lớp, ca làm', level: 'HSK2', lesson: '13+14' },
+    { han: '上个班', pinyin: 'shàng gè bān', meaning: 'làm ca đêm', level: 'HSK2', lesson: '13+14' },
+    { han: '长', pinyin: 'zhǎng', meaning: 'mọc, sinh ra, phát triển', level: 'HSK2', lesson: '13+14' },
+    { han: '长', pinyin: 'cháng', meaning: 'dài lâu', level: 'HSK2', lesson: '13+14' },
+    { han: '笑', pinyin: 'xiào', meaning: 'cười', level: 'HSK2', lesson: '13+14' },
+    { han: '兵员=酒店', pinyin: 'bīngyuán=jiǔdiàn', meaning: 'khách sạn', level: 'HSK2', lesson: '13+14' },
+    { han: '一直', pinyin: 'yīzhí', meaning: 'luôn luôn, thẳng, suốt, liên tục', level: 'HSK2', lesson: '13+14' },
+    { han: '往', pinyin: 'wǎng', meaning: 'hướng về', level: 'HSK2', lesson: '13+14' },
+    { han: '路口', pinyin: 'lùkǒu', meaning: 'giao lộ', level: 'HSK2', lesson: '13+14' },
+    { han: '虽然…但是', pinyin: 'suīrán…dànshì', meaning: 'mặc dù…nhưng mà', level: 'HSK2', lesson: '13+14' },
+    { han: '次', pinyin: 'cì', meaning: 'lần', level: 'HSK2', lesson: '13+14' },
+    { han: '玩儿', pinyin: 'wánr', meaning: 'chơi', level: 'HSK2', lesson: '13+14' },
+    { han: '晴 >< 阴', pinyin: 'qíng >< yīn', meaning: 'có nắng >< có mây', level: 'HSK2', lesson: '13+14' },
+    { han: '百', pinyin: 'bǎi', meaning: 'trăm', level: 'HSK2', lesson: '13+14' },
+
+    // Bài 15 (HSK2)
+    { han: '新年', pinyin: 'xīnnián', meaning: 'năm trước', level: 'HSK2', lesson: '15' },
+    { han: '票', pinyin: 'piào', meaning: 'vé', level: 'HSK2', lesson: '15' },
+    { han: '火车站', pinyin: 'huǒchē zhàn', meaning: 'trạm xe lửa', level: 'HSK2', lesson: '15' },
+    { han: '大家', pinyin: 'dàjiā', meaning: 'mọi người', level: 'HSK2', lesson: '15' },
+    { han: '更', pinyin: 'gèng', meaning: 'hơn', level: 'HSK2', lesson: '15' },
+    { han: '妹妹', pinyin: 'mèimei', meaning: 'em gái', level: 'HSK2', lesson: '15' },
+    { han: '阴', pinyin: 'jīn', meaning: 'âm u, nhiều mây', level: 'HSK2', lesson: '15' },
+
+    // Bài 1 (HSK3)
+    { han: '就是', pinyin: 'jiùshì', meaning: 'chẳng qua, chính là, nhưng mà', level: 'HSK3', lesson: '1' },
+    { han: '周末', pinyin: 'zhōumò', meaning: 'cuối tuần', level: 'HSK3', lesson: '1' },
+    { han: '打算', pinyin: 'dǎsuàn', meaning: 'kế hoạch, dự định', level: 'HSK3', lesson: '1' },
+    { han: '跟 = 和', pinyin: 'gēn = hé', meaning: 'cùng, với, theo', level: 'HSK3', lesson: '1' },
+    { han: '游戏', pinyin: 'yóuxì', meaning: 'trò chơi', level: 'HSK3', lesson: '1' },
+    { han: '打游戏', pinyin: 'dǎ yóuxì', meaning: 'trò chơi online', level: 'HSK3', lesson: '1' },
+    { han: '作业', pinyin: 'zuòyè', meaning: 'bài tập', level: 'HSK3', lesson: '1' },
+    { han: '着急', pinyin: 'zhāojí', meaning: 'lo lắng, vội vàng', level: 'HSK3', lesson: '1' },
+    { han: '复习', pinyin: 'fùxí', meaning: 'ôn tập', level: 'HSK3', lesson: '1' },
+    { han: '面包', pinyin: 'miànbāo', meaning: 'bánh mì', level: 'HSK3', lesson: '1' },
+    { han: '带', pinyin: 'dài', meaning: 'mang, đem, dẫn, dắt', level: 'HSK3', lesson: '1' },
+    { han: '系鞋带', pinyin: 'xì xié dài', meaning: 'thắt dây giày', level: 'HSK3', lesson: '1' },
+    { han: '地图', pinyin: 'dìtú', meaning: 'bản đồ', level: 'HSK3', lesson: '1' },
+    { han: '搬', pinyin: 'bān', meaning: 'dọn, dời', level: 'HSK3', lesson: '1' },
+    { han: '东', pinyin: 'dōng', meaning: 'đông', level: 'HSK3', lesson: '1' },
+    { han: '南', pinyin: 'nán', meaning: 'nam', level: 'HSK3', lesson: '1' },
+    { han: '西', pinyin: 'xī', meaning: 'tây', level: 'HSK3', lesson: '1' },
+    { han: '北', pinyin: 'běi', meaning: 'bắc', level: 'HSK3', lesson: '1' },
+
+    // Bài 2 (HSK3)
+    { han: '腿', pinyin: 'tuǐ', meaning: 'chân', level: 'HSK3', lesson: '2' },
+    { han: '脚', pinyin: 'jiǎo', meaning: 'bàn chân', level: 'HSK3', lesson: '2' },
+    { han: '疼', pinyin: 'téng', meaning: 'đau, nhứt', level: 'HSK3', lesson: '2' },
+    { han: '树', pinyin: 'shù', meaning: 'cây', level: 'HSK3', lesson: '2' },
+    { han: '容易', pinyin: 'róngyì', meaning: 'dễ dàng', level: 'HSK3', lesson: '2' },
+    { han: '难', pinyin: 'nán', meaning: 'khó', level: 'HSK3', lesson: '2' },
+    { han: '太太', pinyin: 'tàitài', meaning: 'bàn chân', level: 'HSK3', lesson: '2' },
+    { han: '秘书', pinyin: 'mìshū', meaning: 'thư ký', level: 'HSK3', lesson: '2' },
+    { han: '经理', pinyin: 'jīnglǐ', meaning: 'giám đốc', level: 'HSK3', lesson: '2' },
+    { han: '办公室', pinyin: 'bàngōngshì', meaning: 'văn phòng', level: 'HSK3', lesson: '2' },
+    { han: '辆', pinyin: 'liàng', meaning: 'chiếc (chiếc xe)', level: 'HSK3', lesson: '2' },
+    { han: '楼', pinyin: 'lóu', meaning: 'tòa nhà, lầu', level: 'HSK3', lesson: '2' },
+    { han: '吧', pinyin: 'bǎ', meaning: 'con, cây', level: 'HSK3', lesson: '2' },
+    { han: '拿', pinyin: 'ná', meaning: 'cầm, lấy', level: 'HSK3', lesson: '2' },
+    { han: '伞', pinyin: 'sǎn', meaning: 'cây dù', level: 'HSK3', lesson: '2' },
+    { han: '胖', pinyin: 'pàng', meaning: 'béo', level: 'HSK3', lesson: '2' },
+    { han: '其实', pinyin: 'qíshí', meaning: 'thật ra', level: 'HSK3', lesson: '2' },
+    { han: '瘦', pinyin: 'shòu', meaning: 'gầy, ốm', level: 'HSK3', lesson: '2' },
+
+    // Bài 3 (HSK3)
+    { han: '还是', pinyin: 'háishì', meaning: 'hay là', level: 'HSK3', lesson: '3' },
+    { han: '爬山', pinyin: 'páshān', meaning: 'leo núi', level: 'HSK3', lesson: '3' },
+    { han: '小心', pinyin: 'xiǎoxīn', meaning: 'cẩn thận', level: 'HSK3', lesson: '3' },
+    { han: '条', pinyin: 'tiáo', meaning: 'cái (quần, váy)', level: 'HSK3', lesson: '3' },
+    { han: '一条裤子', pinyin: 'yītiáo kùzǐ', meaning: '1 cái quần', level: 'HSK3', lesson: '3' },
+    { han: '记得', pinyin: 'jìdé', meaning: 'nhớ, còn nhớ', level: 'HSK3', lesson: '3' },
+    { han: '衬衫', pinyin: 'chènshān', meaning: 'áo sơ mi', level: 'HSK3', lesson: '3' },
+    { han: '元 = 快', pinyin: 'yuán = kuài', meaning: 'đồng', level: 'HSK3', lesson: '3' },
+    { han: '新鲜', pinyin: 'xīnxiān', meaning: 'tươi, trong lành', level: 'HSK3', lesson: '3' },
+    { han: '甜', pinyin: 'tián', meaning: 'ngọt', level: 'HSK3', lesson: '3' },
+    { han: '只', pinyin: 'zhǐ', meaning: 'chỉ', level: 'HSK3', lesson: '3' },
+    { han: '放', pinyin: 'fàng', meaning: 'đặt, để', level: 'HSK3', lesson: '3' },
+    { han: '饮料', pinyin: 'yǐnliào', meaning: 'đồ uống, thức uống', level: 'HSK3', lesson: '3' },
+    { han: '或者', pinyin: 'huòzhě', meaning: 'hoặc', level: 'HSK3', lesson: '3' },
+    { han: '舒服', pinyin: 'shūfú', meaning: 'dễ chịu, thoải mái', level: 'HSK3', lesson: '3' },
+    { han: '花', pinyin: 'huā', meaning: 'xài, tiêu hao', level: 'HSK3', lesson: '3' },
+    { han: '绿', pinyin: 'lǜ', meaning: 'xanh lá', level: 'HSK3', lesson: '3' },
+
+    // Bài 4 (HSK3)
+    { han: '比赛', pinyin: 'bǐsài', meaning: 'cuộc thi', level: 'HSK3', lesson: '4' },
+    { han: '照片', pinyin: 'zhàopiàn', meaning: 'hình, ảnh', level: 'HSK3', lesson: '4' },
+    { han: '年级', pinyin: 'niánjí', meaning: 'lớp, cấp bậc', level: 'HSK3', lesson: '4' },
+    { han: '初中', pinyin: 'chūzhōng', meaning: 'cơ sở', level: 'HSK3', lesson: '4' },
+    { han: '高中', pinyin: 'gāozhōng', meaning: 'cấp 3', level: 'HSK3', lesson: '4' },
+    { han: '又…又', pinyin: 'yòu…yòu', meaning: 'vừa…vừa', level: 'HSK3', lesson: '4' },
+    { han: '聪明', pinyin: 'cōngmíng', meaning: 'thông minh', level: 'HSK3', lesson: '4' },
+    { han: '热情', pinyin: 'rèqíng', meaning: 'nhiệt tình', level: 'HSK3', lesson: '4' },
+    { han: '努力', pinyin: 'nǔlì', meaning: 'hăng hái, tích cực, làm việc', level: 'HSK3', lesson: '4' },
+    { han: '总是', pinyin: 'zǒng shì', meaning: 'luôn luôn', level: 'HSK3', lesson: '4' },
+    { han: '回答', pinyin: 'huídá', meaning: 'trả lời', level: 'HSK3', lesson: '4' },
+    { han: '站', pinyin: 'zhàn', meaning: 'đứng', level: 'HSK3', lesson: '4' },
+    { han: '饿', pinyin: 'è', meaning: 'đói', level: 'HSK3', lesson: '4' },
+    { han: '超市', pinyin: 'chāoshì', meaning: 'siêu thị', level: 'HSK3', lesson: '4' },
+    { han: '蛋糕', pinyin: 'dàngāo', meaning: 'bánh kem', level: 'HSK3', lesson: '4' },
+    { han: '年糕', pinyin: 'niángāo', meaning: 'bánh tổ', level: 'HSK3', lesson: '4' },
+    { han: '年轻', pinyin: 'niánqīng', meaning: 'trẻ tuổi', level: 'HSK3', lesson: '4' },
+    { han: '认真', pinyin: 'rènzhēn', meaning: 'nghiêm túc, chăm chỉ', level: 'HSK3', lesson: '4' },
+    { han: '客人', pinyin: 'kèrén', meaning: 'khách', level: 'HSK3', lesson: '4' },
+
+    // Bài 5 (HSK3)
+    { han: '发烧', pinyin: 'fāshāo', meaning: 'sốt', level: 'HSK3', lesson: '5' },
+    { han: '为 # 位', pinyin: 'wèi # wèi', meaning: 'cho # lượng từ chỉ người', level: 'HSK3', lesson: '5' },
+    { han: '照顾', pinyin: 'zhàogù', meaning: 'chăm sóc', level: 'HSK3', lesson: '5' },
+    { han: '用', pinyin: 'yòng', meaning: 'cần, dùng', level: 'HSK3', lesson: '5' },
+    { han: '感冒', pinyin: 'gǎnmào', meaning: 'bị cảm', level: 'HSK3', lesson: '5' },
+    { han: '季节', pinyin: 'jìjié', meaning: 'mùa', level: 'HSK3', lesson: '5' },
+    { han: '节日', pinyin: 'jiérì', meaning: 'ngày lễ', level: 'HSK3', lesson: '5' },
+    { han: '当然', pinyin: 'dāngrán', meaning: 'đương nhiên', level: 'HSK3', lesson: '5' },
+    { han: '春天', pinyin: 'chūntiān', meaning: 'mùa xuân', level: 'HSK3', lesson: '5' },
+    { han: '夏天', pinyin: 'xiàtiān', meaning: 'mùa hè', level: 'HSK3', lesson: '5' },
+    { han: '秋天', pinyin: 'qiūtiān', meaning: 'mùa thu', level: 'HSK3', lesson: '5' },
+    { han: '冬天', pinyin: 'dōngtiān', meaning: 'mùa đông', level: 'HSK3', lesson: '5' },
+    { han: '草', pinyin: 'cǎo', meaning: 'cỏ', level: 'HSK3', lesson: '5' },
+    { han: '裙子', pinyin: 'qúnzǐ', meaning: 'váy', level: 'HSK3', lesson: '5' },
+    { han: '越来越', pinyin: 'yuè lái yuè', meaning: 'ngày càng…', level: 'HSK3', lesson: '5' },
+    { han: '最近', pinyin: 'zuìjìn', meaning: 'gần đây', level: 'HSK3', lesson: '5' },
+    { han: '最后', pinyin: 'zuìhòu', meaning: 'sau cùng, cuối cùng', level: 'HSK3', lesson: '5' },
+
+    // Bài 6 (HSK3)
+    { han: '眼镜', pinyin: 'yǎnjìng', meaning: 'mắt kính', level: 'HSK3', lesson: '6' },
+    { han: '突然', pinyin: 'tūrán', meaning: 'đột nhiên', level: 'HSK3', lesson: '6' },
+    { han: '离开', pinyin: 'líkāi', meaning: 'rời khỏi', level: 'HSK3', lesson: '6' },
+    { han: '清楚', pinyin: 'qīngchu', meaning: 'rõ ràng', level: 'HSK3', lesson: '6' },
+    { han: '刚才', pinyin: 'gāngcái', meaning: 'vừa nảy', level: 'HSK3', lesson: '6' },
+    { han: '帮忙', pinyin: 'bāngmáng', meaning: 'giúp đỡ', level: 'HSK3', lesson: '6' },
+    { han: '特别', pinyin: 'tèbié', meaning: 'đặc biệt', level: 'HSK3', lesson: '6' },
+    { han: '讲', pinyin: 'jiǎng', meaning: 'giảng, kể', level: 'HSK3', lesson: '6' },
+    { han: '明白', pinyin: 'míngbái', meaning: 'dễ hiểu', level: 'HSK3', lesson: '6' },
+    { han: '锻炼', pinyin: 'duànliàn', meaning: 'tập thể dục', level: 'HSK3', lesson: '6' },
+    { han: '音乐', pinyin: 'yīnyuè', meaning: 'âm nhạc', level: 'HSK3', lesson: '6' },
+    { han: '公园', pinyin: 'gōngyuán', meaning: 'công viên', level: 'HSK3', lesson: '6' },
+    { han: '聊天', pinyin: 'liáotiān', meaning: 'trò chuyện', level: 'HSK3', lesson: '6' },
+    { han: '睡着', pinyin: 'shuìzháo', meaning: 'ngủ được', level: 'HSK3', lesson: '6' },
+
+    // Bài 7 (HSK3)
+    { han: '同事', pinyin: 'tóngshì', meaning: 'đồng nghiệp', level: 'HSK3', lesson: '7' },
+    { han: '以前', pinyin: 'yǐqián', meaning: 'trước đây, trước kia', level: 'HSK3', lesson: '7' },
+    { han: '银行', pinyin: 'yínháng', meaning: 'ngân hàng', level: 'HSK3', lesson: '7' },
+    { han: '久', pinyin: 'jiǔ', meaning: 'lâu, dài lâu', level: 'HSK3', lesson: '7' },
+    { han: '多久 = 多长时间', pinyin: 'duōjiǔ = duō cháng shíjiān', meaning: 'bao lâu', level: 'HSK3', lesson: '7' },
+    { han: '感兴趣', pinyin: 'gǎn xìngqù', meaning: 'hứng thú', level: 'HSK3', lesson: '7' },
+    { han: '对…感兴趣', pinyin: 'duì…gǎn xìngqù', meaning: 'có hứng thú với …', level: 'HSK3', lesson: '7' },
+    { han: '结婚', pinyin: 'jiéhūn', meaning: 'kết hôn', level: 'HSK3', lesson: '7' },
+    { han: '欢迎', pinyin: 'huānyíng', meaning: 'hoan nghênh', level: 'HSK3', lesson: '7' },
+    { han: '迟到', pinyin: 'chídào', meaning: 'đến muộn', level: 'HSK3', lesson: '7' },
+    { han: '半', pinyin: 'bàn', meaning: 'nửa, rưỡi', level: 'HSK3', lesson: '7' },
+    { han: '接', pinyin: 'jiē', meaning: 'đón', level: 'HSK3', lesson: '7' },
+    { han: '一刻', pinyin: 'yīkè', meaning: '15 phút', level: 'HSK3', lesson: '7' },
+    { han: '差', pinyin: 'chà', meaning: 'kém, thiếu', level: 'HSK3', lesson: '7' },
+    { han: '差点', pinyin: 'chàdiǎn', meaning: 'kém xíu nữa', level: 'HSK3', lesson: '7' },
+    { han: '八点半', pinyin: '8:30', meaning: '8:30', level: 'HSK3', lesson: '7' },
+    { han: '两点一刻', pinyin: '2:15', meaning: '2:15', level: 'HSK3', lesson: '7' },
+    { han: '差五分十一克', pinyin: '10:55', meaning: '10:55', level: 'HSK3', lesson: '7' },
+
+    // Bài 8 (HSK3)
+    { han: '又', pinyin: 'yòu', meaning: 'lại', level: 'HSK3', lesson: '8' },
+    { han: '满意', pinyin: 'mǎnyì', meaning: 'hài lòng, vừa ý', level: 'HSK3', lesson: '8' },
+    { han: '电梯', pinyin: 'diàntī', meaning: 'thang máy', level: 'HSK3', lesson: '8' },
+    { han: '层', pinyin: 'céng', meaning: 'tầng', level: 'HSK3', lesson: '8' },
+    { han: '我家有三层楼', pinyin: 'wǒjiā yǒusān céng lóu', meaning: 'nhà tôi có 3 tầng', level: 'HSK3', lesson: '8' },
+    { han: '我家在三楼', pinyin: 'wǒjiā zài sān lóu', meaning: 'nhà tôi ở tầng 3', level: 'HSK3', lesson: '8' },
+    { han: '害怕', pinyin: 'hàipà', meaning: 'sợ', level: 'HSK3', lesson: '8' },
+    { han: '熊猫', pinyin: 'xióngmāo', meaning: 'gấu trúc', level: 'HSK3', lesson: '8' },
+    { han: '见面', pinyin: 'jiànmiàn', meaning: 'gặp nhau', level: 'HSK3', lesson: '8' },
+    { han: '安静', pinyin: 'ānjìng', meaning: 'yên tĩnh', level: 'HSK3', lesson: '8' },
+    { han: '可乐', pinyin: 'kělè', meaning: 'coca', level: 'HSK3', lesson: '8' },
+    { han: '一会儿', pinyin: 'yīhuǐr', meaning: '1 lát, chốc lát', level: 'HSK3', lesson: '8' },
+    { han: '马上', pinyin: 'mǎshàng', meaning: 'ngay lập tức, liền', level: 'HSK3', lesson: '8' },
+    { han: '洗手间', pinyin: 'xǐshǒujiān', meaning: 'nhà vệ sinh', level: 'HSK3', lesson: '8' },
+    { han: '老', pinyin: 'lǎo', meaning: 'già, cũ', level: 'HSK3', lesson: '8' },
+    { han: '几乎', pinyin: 'jīhū', meaning: 'hầu như, gần như', level: 'HSK3', lesson: '8' },
+    { han: '变化', pinyin: 'biànhuà', meaning: 'thay đổi', level: 'HSK3', lesson: '8' },
+    { han: '健康', pinyin: 'jiànkāng', meaning: 'khỏe mạnh', level: 'HSK3', lesson: '8' },
+    { han: '重要', pinyin: 'zhòngyào', meaning: 'quan trọng', level: 'HSK3', lesson: '8' },
+
+    // Bài 9 (HSK3)
+    { han: '中文', pinyin: 'zhōngwén', meaning: 'tiếng Trung Quốc', level: 'HSK3', lesson: '9' },
+    { han: '一样', pinyin: 'yíyàng', meaning: 'giống nhau, như nhau', level: 'HSK3', lesson: '9' },
+    { han: '最后', pinyin: 'zuìhòu', meaning: 'cuối cùng', level: 'HSK3', lesson: '9' },
+    { han: '放心', pinyin: 'fàngxīn', meaning: 'yên tâm', level: 'HSK3', lesson: '9' },
+    { han: '一定', pinyin: 'yīdìng', meaning: 'nhất định, chắc chắn', level: 'HSK3', lesson: '9' },
+    { han: '担心', pinyin: 'dānxīn', meaning: 'lo lắng', level: 'HSK3', lesson: '9' },
+    { han: '比较', pinyin: 'bǐjiào', meaning: 'tương đối, khá', level: 'HSK3', lesson: '9' },
+    { han: '了解', pinyin: 'liǎojiě', meaning: 'hiểu rõ', level: 'HSK3', lesson: '9' },
+    { han: '先', pinyin: 'xiān', meaning: 'trước hết', level: 'HSK3', lesson: '9' },
+    { han: '中间', pinyin: 'zhōngjiān', meaning: 'giữa', level: 'HSK3', lesson: '9' },
+    { han: '参加', pinyin: 'cānjiā', meaning: 'tham gia', level: 'HSK3', lesson: '9' },
+    { han: '影响', pinyin: 'yǐngxiǎng', meaning: 'ảnh hưởng', level: 'HSK3', lesson: '9' },
+
+    // Bài 10 (HSK3)
+    { han: '个子', pinyin: 'gèzǐ', meaning: 'vóc dáng, thân hình', level: 'HSK3', lesson: '10' },
+    { han: '矮', pinyin: 'ǎi', meaning: 'thấp', level: 'HSK3', lesson: '10' },
+    { han: '历史', pinyin: 'lìshǐ', meaning: 'lịch sử', level: 'HSK3', lesson: '10' },
+    { han: '体育', pinyin: 'tǐyù', meaning: 'thể dục', level: 'HSK3', lesson: '10' },
+    { han: '数学', pinyin: 'shùxué', meaning: 'toán', level: 'HSK3', lesson: '10' },
+    { han: '方便', pinyin: 'fāngbiàn', meaning: 'thuận tiện', level: 'HSK3', lesson: '10' },
+    { han: '自行车', pinyin: 'zìxíngchē', meaning: 'xe đạp', level: 'HSK3', lesson: '10' },
+    { han: '骑', pinyin: 'qí', meaning: 'cưỡi, đi', level: 'HSK3', lesson: '10' },
+    { han: '旧', pinyin: 'jiù', meaning: 'cũ (sự vật)', level: 'HSK3', lesson: '10' },
+    { han: '换', pinyin: 'huàn', meaning: 'đổi, thay thế', level: 'HSK3', lesson: '10' },
+    { han: '地方', pinyin: 'dìfāng', meaning: 'chỗ, nơi', level: 'HSK3', lesson: '10' },
+    { han: '中介', pinyin: 'zhōngjiè', meaning: 'môi giới', level: 'HSK3', lesson: '10' },
+    { han: '主要', pinyin: 'zhǔyào', meaning: 'chủ yếu', level: 'HSK3', lesson: '10' },
+    { han: '环境', pinyin: 'huánjìng', meaning: 'môi trường', level: 'HSK3', lesson: '10' },
+    { han: '附近', pinyin: 'fùjìn', meaning: 'vùng lân cận', level: 'HSK3', lesson: '10' },
+
+    // Bài 11 (HSK3)
+    { han: '图书馆', pinyin: 'túshū guǎn', meaning: 'thư viện', level: 'HSK3', lesson: '11' },
+    { han: '借', pinyin: 'jiè', meaning: 'mượn, vay', level: 'HSK3', lesson: '11' },
+    { han: '词典', pinyin: 'cídiǎn', meaning: 'từ điển', level: 'HSK3', lesson: '11' },
+    { han: '还', pinyin: 'hái', meaning: 'trả', level: 'HSK3', lesson: '11' },
+    { han: '灯', pinyin: 'dēng', meaning: 'đèn', level: 'HSK3', lesson: '11' },
+    { han: '会议', pinyin: 'huìyì', meaning: 'hội nghị, cuộc họp', level: 'HSK3', lesson: '11' },
+    { han: '结束', pinyin: 'jiéshù', meaning: 'kết thúc', level: 'HSK3', lesson: '11' },
+    { han: '忘记', pinyin: 'wàngjì', meaning: 'quên', level: 'HSK3', lesson: '11' },
+    { han: '空调', pinyin: 'kòngtiáo', meaning: 'điều hòa', level: 'HSK3', lesson: '11' },
+    { han: '关', pinyin: 'guān', meaning: 'tắt, đóng', level: 'HSK3', lesson: '11' },
+    { han: '地铁', pinyin: 'dìtiě', meaning: 'tàu điện ngầm', level: 'HSK3', lesson: '11' },
+    { han: '双', pinyin: 'shuāng', meaning: 'đôi', level: 'HSK3', lesson: '11' },
+    { han: '一双筷子', pinyin: 'yīshuāng kuàizǐ', meaning: '1 đôi đũa', level: 'HSK3', lesson: '11' },
+    { han: '筷子', pinyin: 'kuàizǐ', meaning: 'đũa', level: 'HSK3', lesson: '11' },
+    { han: '啤酒', pinyin: 'píjiǔ', meaning: 'bia', level: 'HSK3', lesson: '11' },
+    { han: '口', pinyin: 'kǒu', meaning: 'ngụm, hớp', level: 'HSK3', lesson: '11' },
+    { han: '瓶子', pinyin: 'píngzǐ', meaning: 'lọ, bình', level: 'HSK3', lesson: '11' },
+    { han: '笔记本', pinyin: 'bǐjìběn', meaning: 'laptop', level: 'HSK3', lesson: '11' },
+    { han: '电子邮件', pinyin: 'diànzǐ yóujiàn', meaning: 'email', level: 'HSK3', lesson: '11' },
+    { han: '习惯', pinyin: 'xíguàn', meaning: 'thói quen', level: 'HSK3', lesson: '11' },
+
+    // Bài 12 (HSK3)
+    { han: '太阳', pinyin: 'tàiyáng', meaning: 'mặt trời', level: 'HSK3', lesson: '12' },
+    { han: '日出 >< 日落', pinyin: 'rì chū >< rìluò', meaning: 'mặt trời mọc >< mặt trời lặng', level: 'HSK3', lesson: '12' },
+    { han: '西', pinyin: 'xī', meaning: 'phía tây', level: 'HSK3', lesson: '12' },
+    { han: '生气', pinyin: 'shēngqì', meaning: 'tức giận', level: 'HSK3', lesson: '12' },
+    { han: '行李箱', pinyin: 'xínglǐ xiāng', meaning: 'hành lí, vali', level: 'HSK3', lesson: '12' },
+    { han: '自己', pinyin: 'zìjǐ', meaning: 'tự mình, bản thân', level: 'HSK3', lesson: '12' },
+    { han: '包', pinyin: 'bāo', meaning: 'cặp, túi', level: 'HSK3', lesson: '12' },
+    { han: '发现', pinyin: 'fāxiàn', meaning: 'phát hiện', level: 'HSK3', lesson: '12' },
+    { han: '护照', pinyin: 'hùzhào', meaning: 'hộ chiếu', level: 'HSK3', lesson: '12' },
+    { han: '起飞', pinyin: 'qǐfēi', meaning: 'cất cánh', level: 'HSK3', lesson: '12' },
+    { han: '司机', pinyin: 'sījī', meaning: 'tài xế', level: 'HSK3', lesson: '12' },
+    { han: '教', pinyin: 'jiào', meaning: 'dạy', level: 'HSK3', lesson: '12' },
+    { han: '画', pinyin: 'huà', meaning: 'vẽ, tranh', level: 'HSK3', lesson: '12' },
+    { han: '需要', pinyin: 'xūyào', meaning: 'cần', level: 'HSK3', lesson: '12' },
+    { han: '黑板', pinyin: 'hēibǎn', meaning: 'bảng đen', level: 'HSK3', lesson: '12' },
+
+    // Bài 13 (HSK3)
+    { han: '终于', pinyin: 'zhōngyú', meaning: 'cuối cùng', level: 'HSK3', lesson: '13' },
+    { han: '爷爷', pinyin: 'yéyé', meaning: 'ông nội', level: 'HSK3', lesson: '13' },
+    { han: '礼物', pinyin: 'lǐwù', meaning: 'quà tặng', level: 'HSK3', lesson: '13' },
+    { han: '奶奶', pinyin: 'nǎinai', meaning: 'bà nội', level: 'HSK3', lesson: '13' },
+    { han: '遇到', pinyin: 'yù dào', meaning: 'tình cờ gặp', level: 'HSK3', lesson: '13' },
+    { han: '一边', pinyin: 'yībiān', meaning: 'vừa', level: 'HSK3', lesson: '13' },
+    { han: '过去', pinyin: 'guòqù', meaning: 'quá khứ', level: 'HSK3', lesson: '13' },
+    { han: '一般', pinyin: 'yībān', meaning: 'thông thường', level: 'HSK3', lesson: '13' },
+    { han: '愿意', pinyin: 'yuànyì', meaning: 'muốn', level: 'HSK3', lesson: '13' },
+    { han: '起来', pinyin: 'qǐlái', meaning: 'lên', level: 'HSK3', lesson: '13' },
+    { han: '应该', pinyin: 'yīnggāi', meaning: 'nên, cần phải', level: 'HSK3', lesson: '13' },
+    { han: '生活', pinyin: 'shēnghuó', meaning: 'cuộc sống', level: 'HSK3', lesson: '13' },
+    { han: '校长', pinyin: 'xiàozhǎng', meaning: 'hiệu trưởng', level: 'HSK3', lesson: '13' },
+    { han: '怀', pinyin: 'huái', meaning: 'quá, hư', level: 'HSK3', lesson: '13' },
+    { han: '经常', pinyin: 'jīngcháng', meaning: 'thường xuyên', level: 'HSK3', lesson: '13' },
+
+    // Bài 14 (HSK3)
+    { han: '打扫', pinyin: 'dǎsǎo', meaning: 'quét dọn', level: 'HSK3', lesson: '14' },
+    { han: '干净', pinyin: 'gānjìng', meaning: 'sạch sẽ', level: 'HSK3', lesson: '14' },
+    { han: '然后', pinyin: 'ránhòu', meaning: 'sau đó', level: 'HSK3', lesson: '14' },
+    { han: '冰箱', pinyin: 'bīngxiāng', meaning: 'tủ lạnh', level: 'HSK3', lesson: '14' },
+    { han: '洗澡', pinyin: 'xǐzǎo', meaning: 'tắm rửa', level: 'HSK3', lesson: '14' },
+    { han: '节目', pinyin: 'jiémù', meaning: 'chương trình (truyền hình)', level: 'HSK3', lesson: '14' },
+    { han: '月亮', pinyin: 'yuèliàng', meaning: 'mặt trăng', level: 'HSK3', lesson: '14' },
+    { han: '像', pinyin: 'xiàng', meaning: 'giống', level: 'HSK3', lesson: '14' },
+    { han: '盘子', pinyin: 'pánzǐ', meaning: 'cái đĩa, mâm', level: 'HSK3', lesson: '14' },
+    { han: '刮风', pinyin: 'guā fēng', meaning: 'nổi gió', level: 'HSK3', lesson: '14' },
+    { han: '叔叔', pinyin: 'shūshu', meaning: 'chú', level: 'HSK3', lesson: '14' },
+    { han: '阿姨', pinyin: 'āyí', meaning: 'dì', level: 'HSK3', lesson: '14' },
+    { han: '故事', pinyin: 'gùshì', meaning: 'truyện, câu chuyện', level: 'HSK3', lesson: '14' },
+    { han: '事故', pinyin: 'shìgù', meaning: 'sự cố', level: 'HSK3', lesson: '14' },
+    { han: '声音', pinyin: 'shēngyīn', meaning: 'âm thanh', level: 'HSK3', lesson: '14' },
+    { han: '菜单', pinyin: 'càidān', meaning: 'thực đơn', level: 'HSK3', lesson: '14' },
+    { han: '简单', pinyin: 'jiǎndān', meaning: 'đơn giản', level: 'HSK3', lesson: '14' },
+    { han: '香蕉', pinyin: 'xiāngjiāo', meaning: 'chuối tiêu', level: 'HSK3', lesson: '14' },
+
+    // Bài 15 (HSK3)
+    { han: '留学', pinyin: 'liúxué', meaning: 'du học', level: 'HSK3', lesson: '15' },
+    { han: '留学生', pinyin: 'liúxuéshēng', meaning: 'du học sinh', level: 'HSK3', lesson: '15' },
+    { han: '水平', pinyin: 'shuǐpíng', meaning: 'trình độ', level: 'HSK3', lesson: '15' },
+    { han: '提高', pinyin: 'tígāo', meaning: 'nâng cao, tiến bộ', level: 'HSK3', lesson: '15' },
+    { han: '练习', pinyin: 'liànxí', meaning: 'bài tập', level: 'HSK3', lesson: '15' },
+    { han: '完成', pinyin: 'wánchéng', meaning: 'hoàn thành', level: 'HSK3', lesson: '15' },
+    { han: '句子', pinyin: 'jùzǐ', meaning: 'câu', level: 'HSK3', lesson: '15' },
+    { han: '一个句子', pinyin: 'yīgè jùzǐ', meaning: '1 câu', level: 'HSK3', lesson: '15' },
+    { han: '一句说', pinyin: 'yījù shuō', meaning: '1 câu nói', level: 'HSK3', lesson: '15' },
+    { han: '其他', pinyin: 'qítā', meaning: 'cái khác', level: 'HSK3', lesson: '15' },
+    { han: '发', pinyin: 'fā', meaning: 'gửi, phát', level: 'HSK3', lesson: '15' },
+    { han: '要求', pinyin: 'yāoqiú', meaning: 'yêu cầu', level: 'HSK3', lesson: '15' },
+    { han: '注意', pinyin: 'zhùyì', meaning: 'chú ý', level: 'HSK3', lesson: '15' },
+    { han: '上网', pinyin: 'shàngwǎng', meaning: 'lên mạng', level: 'HSK3', lesson: '15' },
+    { han: '新闻', pinyin: 'xīnwén', meaning: 'tin tức', level: 'HSK3', lesson: '15' },
+    { han: '花', pinyin: 'huā', meaning: 'tiêu tốn', level: 'HSK3', lesson: '15' },
+    { han: '极了', pinyin: 'jíle', meaning: 'hết sức, cực kỳ', level: 'HSK3', lesson: '15' },
+    { han: '举行', pinyin: 'jǔxíng', meaning: 'tổ chức', level: 'HSK3', lesson: '15' },
+    { han: '世界', pinyin: 'shìjiè', meaning: 'thế giới', level: 'HSK3', lesson: '15' },
+    { han: '街道', pinyin: 'jiēdào', meaning: 'đường phố', level: 'HSK3', lesson: '15' },
+    { han: '各', pinyin: 'gè', meaning: 'mỗi', level: 'HSK3', lesson: '15' },
+    { han: '文化', pinyin: 'wénhuà', meaning: 'văn hóa', level: 'HSK3', lesson: '15' },
+
+    // Bài 16 (HSK3)
+    { han: '城市', pinyin: 'chéngshì', meaning: 'thành phố', level: 'HSK3', lesson: '16' },
+    { han: '如果', pinyin: 'rúguǒ', meaning: 'nếu', level: 'HSK3', lesson: '16' },
+    { han: '认为', pinyin: 'rènwéi', meaning: 'cho rằng', level: 'HSK3', lesson: '16' },
+    { han: '皮鞋', pinyin: 'píxié', meaning: 'giày da', level: 'HSK3', lesson: '16' },
+    { han: '帽子', pinyin: 'màozǐ', meaning: 'nón', level: 'HSK3', lesson: '16' },
+    { han: '长', pinyin: 'zhǎng', meaning: 'trưởng thành, lớn lên', level: 'HSK3', lesson: '16' },
+    { han: '可爱', pinyin: 'kěài', meaning: 'đáng yêu, dễ thương', level: 'HSK3', lesson: '16' },
+    { han: '米', pinyin: 'mǐ', meaning: 'mét', level: 'HSK3', lesson: '16' },
+    { han: '公斤', pinyin: 'gōngjīn', meaning: 'kg', level: 'HSK3', lesson: '16' },
+    { han: '鼻子', pinyin: 'bízǐ', meaning: 'mũi', level: 'HSK3', lesson: '16' },
+    { han: '头发', pinyin: 'tóufǎ', meaning: 'tóc', level: 'HSK3', lesson: '16' },
+    { han: '检查', pinyin: 'jiǎnchá', meaning: 'kiểm tra, khám', level: 'HSK3', lesson: '16' },
+    { han: '刷牙', pinyin: 'shuāyá', meaning: 'chải răng', level: 'HSK3', lesson: '16' },
+    { han: '关系', pinyin: 'guānxì', meaning: 'quan hệ', level: 'HSK3', lesson: '16' },
+    { han: '别人', pinyin: 'biérén', meaning: 'người khác', level: 'HSK3', lesson: '16' },
+    { han: '词语', pinyin: 'cíyǔ', meaning: 'từ ngữ', level: 'HSK3', lesson: '16' },
+
+    // Bài 17 (HSK3)
+    { han: '请假', pinyin: 'qǐngjià', meaning: 'xin nghỉ phép', level: 'HSK3', lesson: '17' },
+    { han: '一共', pinyin: 'yīgòng', meaning: 'tổng cộng', level: 'HSK3', lesson: '17' },
+    { han: '邻居', pinyin: 'línjū', meaning: 'láng giềng', level: 'HSK3', lesson: '17' },
+    { han: '后来', pinyin: 'hòulái', meaning: 'sau này, sau đó', level: 'HSK3', lesson: '17' },
+    { han: '爱好', pinyin: 'àihào', meaning: 'sở thích', level: 'HSK3', lesson: '17' },
+    { han: '办法', pinyin: 'bànfǎ', meaning: 'cách, biện pháp', level: 'HSK3', lesson: '17' },
+    { han: '饱', pinyin: 'bǎo', meaning: 'no', level: 'HSK3', lesson: '17' },
+    { han: '为了', pinyin: 'wèile', meaning: 'để, vì', level: 'HSK3', lesson: '17' },
+    { han: '决定', pinyin: 'juédìng', meaning: 'quyết định', level: 'HSK3', lesson: '17' },
+    { han: '选择', pinyin: 'xuǎnzé', meaning: 'lựa chọn', level: 'HSK3', lesson: '17' },
+    { han: '必须', pinyin: 'bìxū', meaning: 'cần phải', level: 'HSK3', lesson: '17' },
+    { han: '根据', pinyin: 'gēnjù', meaning: 'căn cứ vào, dựa vào', level: 'HSK3', lesson: '17' },
+    { han: '情况', pinyin: 'qíngkuàng', meaning: 'tình hình, tình trạng', level: 'HSK3', lesson: '17' },
+    { han: '口', pinyin: 'kǒu', meaning: 'miệng', level: 'HSK3', lesson: '17' },
+    { han: '渴', pinyin: 'kě', meaning: 'khát', level: 'HSK3', lesson: '17' },
+
+    // Bài 18 (HSK3)
+    { han: '向', pinyin: 'xiàng', meaning: 'đối với, về phía', level: 'HSK3', lesson: '18' },
+    { han: '万', pinyin: 'wàn', meaning: 'vạn, mười nghìn', level: 'HSK3', lesson: '18' },
+    { han: '只', pinyin: 'zhǐ', meaning: 'con (dùng cho động vật)', level: 'HSK3', lesson: '18' },
+    { han: '嘴', pinyin: 'zuǐ', meaning: 'miệng', level: 'HSK3', lesson: '18' },
+    { han: '动物', pinyin: 'dòngwù', meaning: 'động vật, loài vật', level: 'HSK3', lesson: '18' },
+    { han: '段', pinyin: 'duàn', meaning: 'khoảng, quãng', level: 'HSK3', lesson: '18' },
+    { han: '不但…而且…', pinyin: 'bùdàn…érqiě…', meaning: 'không những…mà còn', level: 'HSK3', lesson: '18' },
+    { han: '有名', pinyin: 'yǒumíng', meaning: 'có tiếng, nổi tiếng', level: 'HSK3', lesson: '18' },
+    { han: '同意', pinyin: 'tóngyì', meaning: 'đồng ý, tán thành', level: 'HSK3', lesson: '18' },
+    { han: '相信', pinyin: 'xiāngxìn', meaning: 'tin, tin tưởng', level: 'HSK3', lesson: '18' },
+    { han: '关于', pinyin: 'guānyú', meaning: 'về', level: 'HSK3', lesson: '18' },
+    { han: '机会', pinyin: 'jīhuì', meaning: 'cơ hội', level: 'HSK3', lesson: '18' },
+    { han: '国家', pinyin: 'guójiā', meaning: 'đất nước, quốc gia', level: 'HSK3', lesson: '18' },
+    { han: '种', pinyin: 'zhǒng', meaning: 'loại', level: 'HSK3', lesson: '18' },
+    { han: '特点', pinyin: 'tèdiǎn', meaning: 'đặc điểm', level: 'HSK3', lesson: '18' },
+    { han: '奇怪', pinyin: 'qíguài', meaning: 'kỳ lạ, lạ lùng', level: 'HSK3', lesson: '18' },
+    { han: '地', pinyin: 'de', meaning: '(dùng để nối trạng ngữ với động từ mà nó bổ nghĩa)', level: 'HSK3', lesson: '18' },
+
+    // Bài 19 (HSK3)
+    { han: '耳朵', pinyin: 'ěrduǒ', meaning: 'tai', level: 'HSK3', lesson: '19' },
+    { han: '脸', pinyin: 'liǎn', meaning: 'mặt, khuôn mặt', level: 'HSK3', lesson: '19' },
+    { han: '短', pinyin: 'duǎn', meaning: 'ngắn', level: 'HSK3', lesson: '19' },
+    { han: '马', pinyin: 'mǎ', meaning: 'ngựa', level: 'HSK3', lesson: '19' },
+    { han: '张', pinyin: 'zhāng', meaning: 'tờ, tấm', level: 'HSK3', lesson: '19' },
+    { han: '蓝', pinyin: 'lán', meaning: 'có màu xanh da trời', level: 'HSK3', lesson: '19' },
+    { han: '鸟', pinyin: 'niǎo', meaning: 'chim', level: 'HSK3', lesson: '19' },
+    { han: '哭', pinyin: 'kū', meaning: 'khóc', level: 'HSK3', lesson: '19' },
+    { han: '黄河', pinyin: 'huánghé', meaning: 'Hoàng Hà', level: 'HSK3', lesson: '19' },
+    { han: '船', pinyin: 'chuán', meaning: 'thuyền, tàu', level: 'HSK3', lesson: '19' },
+    { han: '经过', pinyin: 'jīngguò', meaning: 'đi ngang qua', level: 'HSK3', lesson: '19' },
+
+    // Bài 20 (HSK3)
+    { han: '照相机', pinyin: 'zhàoxiàngjī', meaning: 'máy chụp ảnh', level: 'HSK3', lesson: '20' },
+    { han: '被', pinyin: 'bèi', meaning: 'bị', level: 'HSK3', lesson: '20' },
+    { han: '难过', pinyin: 'nánguò', meaning: 'buồn', level: 'HSK3', lesson: '20' },
+    { han: '信用卡', pinyin: 'xìnyòngkǎ', meaning: 'thẻ tín dụng', level: 'HSK3', lesson: '20' },
+    { han: '关心', pinyin: 'guānxīn', meaning: 'quan tâm, chú ý', level: 'HSK3', lesson: '20' },
+    { han: '只有…才…', pinyin: 'zhǐyǒu…cái…', meaning: 'chỉ có…thì mới', level: 'HSK3', lesson: '20' },
+    { han: '成绩', pinyin: 'chéngjì', meaning: 'thành tích, kết quả', level: 'HSK3', lesson: '20' },
+    { han: '碗', pinyin: 'wǎn', meaning: 'bát', level: 'HSK3', lesson: '20' },
+    { han: '分', pinyin: 'fēn', meaning: 'phân biệt', level: 'HSK3', lesson: '20' },
+    { han: '解决', pinyin: 'jiějué', meaning: 'giải quyết', level: 'HSK3', lesson: '20' },
+    { han: '试', pinyin: 'shì', meaning: 'thử', level: 'HSK3', lesson: '20' },
+    { han: '真正', pinyin: 'zhēnzhèng', meaning: 'thật sự', level: 'HSK3', lesson: '20' },
+    { han: '多么', pinyin: 'duōme', meaning: 'mấy, bao nhiêu', level: 'HSK3', lesson: '20' },
+    { han: '成功', pinyin: 'chénggōng', meaning: 'thành công', level: 'HSK3', lesson: '20' },
+    { han: '失败', pinyin: 'shībài', meaning: 'thất bại', level: 'HSK3', lesson: '20' },
+    { han: '努力', pinyin: 'nǔlì', meaning: 'nỗ lực', level: 'HSK3', lesson: '20' },
+    { han: '经验', pinyin: 'jīngyàn', meaning: 'kinh nghiệm', level: 'HSK3', lesson: '20' },
+    { han: '知识', pinyin: 'zhīshi', meaning: 'kiến thức', level: 'HSK3', lesson: '20' },
+    { han: '方法', pinyin: 'fāngfǎ', meaning: 'phương pháp', level: 'HSK3', lesson: '20' }
+
+    
+        ];
+
+
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+
+        function populateLessons() {
+            const level = document.getElementById('hskLevel').value;
+            const lessonSelect = document.getElementById('lesson');
+            lessonSelect.innerHTML = '<option value="all">Tất cả bài học</option>';
+
+            const lessons = [...new Set(vocabulary
+                .filter(word => word.level === level)
+                .map(word => word.lesson))];
+
+            lessons.forEach(lesson => {
+                const option = document.createElement('option');
+                option.value = lesson;
+                option.textContent = `Bài ${lesson}`;
+                lessonSelect.appendChild(option);
+            });
+        }
+
+        function startQuiz() {
+            const selectedLevel = document.getElementById('hskLevel').value;
+            const selectedLesson = document.getElementById('lesson').value;
+
+            currentQuestions = vocabulary.filter(word =>
+                word.level === selectedLevel &&
+                (selectedLesson === 'all' || word.lesson === selectedLesson)
+            ).sort(() => Math.random() - 0.5);
+
+            currentQuestionIndex = 0;
+            score = 0;
+            showNextQuestion();
+        }
+
+        function showNextQuestion() {
+            const container = document.getElementById('quizArea');
+            if (currentQuestionIndex >= currentQuestions.length) {
+                showFinalResult();
+                return;
+            }
+
+            const currentWord = currentQuestions[currentQuestionIndex];
+            const options = getRandomOptions(currentWord);
+
+            container.innerHTML = `
+                <div class="quiz-container">
+                   <div class="question">
+    Câu ${currentQuestionIndex + 1}: "${currentWord.meaning}" tiếng Trung là gì? (${currentWord.pinyin})
+</div>
+
+<div class="options">
+    ${options.map(opt => `
+        <div class="option" data-han="${opt.han}" onclick="checkAnswer('${opt.han}')">
+            ${opt.han} 
+        </div>
+    `).join('')}
+</div>
+
+                </div>
+            `;
+        }
+
+        function getRandomOptions(correctWord) {
+            const wrongOptions = vocabulary
+                .filter(word => word.han !== correctWord.han)
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 3);
+
+            return [...wrongOptions, correctWord].sort(() => Math.random() - 0.5);
+        }
+
+        function checkAnswer(selectedHan) {
+            const correctHan = currentQuestions[currentQuestionIndex].han;
+            const options = document.getElementsByClassName('option');
+
+            Array.from(options).forEach(opt => {
+                opt.style.pointerEvents = 'none';
+                if (opt.getAttribute("data-han") === correctHan) opt.classList.add('correct');
+                if (opt.getAttribute("data-han") === selectedHan && selectedHan !== correctHan) opt.classList.add('wrong');
+            });
+
+            if (selectedHan === correctHan) score++;
+            setTimeout(() => { currentQuestionIndex++; updateScore(); showNextQuestion(); }, 1500);
+        }
+
+        function updateScore() {
+            document.getElementById('scoreBoard').textContent = `Điểm: ${score}/${currentQuestions.length}`;
+        }
+
+        function showFinalResult() {
+            document.getElementById('quizArea').innerHTML = `<h2>Kết quả: ${score}/${currentQuestions.length}</h2>`;
+        }
+
+        document.getElementById('hskLevel').addEventListener('change', populateLessons);
+        populateLessons();
+    </script>
+</body>
+</html>
